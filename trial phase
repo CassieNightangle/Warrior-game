@@ -1,0 +1,54 @@
+git remote add origin https://github.com/CassieNightangle/Warrior-game.git
+git branch -M main
+git push -u origin main
+from direct.showbase.ShowBase import ShowBase
+from panda3d.core import Point3, Vec4, AmbientLight, DirectionalLight
+from direct.task import Task
+from math import sin, cos
+
+class WarriorGame(ShowBase):
+    def __init__(self):
+        ShowBase.__init__(self)
+
+        # Load the environment model
+        self.environ = self.loader.loadModel("models/environment")
+        self.environ.reparentTo(self.render)
+        self.environ.setScale(0.25, 0.25, 0.25)
+        self.environ.setPos(-8, 42, 0)
+
+        # Setup camera
+        self.disableMouse()
+        self.camera.setPos(0, -30, 10)
+        self.camera.lookAt(0, 0, 0)
+
+        # Add ambient light
+        ambientLight = AmbientLight("ambientLight")
+        ambientLight.setColor(Vec4(0.3, 0.3, 0.3, 1))
+        self.render.setLight(self.render.attachNewNode(ambientLight))
+
+        # Add directional light
+        directionalLight = DirectionalLight("directionalLight")
+        directionalLight.setDirection(Point3(-5, -5, -5))
+        directionalLight.setColor(Vec4(1, 1, 1, 1))
+        self.render.setLight(self.render.attachNewNode(directionalLight))
+
+        # Load and position character models
+        self.characters = {}
+        for name, position in zip(['Nadaoka', 'Kurono', 'Seon'], [(0, 0, 0), (5, 0, 0), (-5, 0, 0)]):
+            self.characters[name] = self.loader.loadModel("models/panda")
+            self.characters[name].reparentTo(self.render)
+            self.characters[name].setScale(0.005, 0.005, 0.005)
+            self.characters[name].setPos(*position)
+
+        # Add rotation task
+        self.taskMgr.add(self.spin_camera_task, "spin_camera_task")
+
+    def spin_camera_task(self, task):
+        angle_degrees = task.time * 6.0
+        angle_radians = angle_degrees * (3.14159 / 180.0)
+        self.camera.setPos(20 * sin(angle_radians), -20 * cos(angle_radians), 3)
+        self.camera.lookAt(0, 0, 0)
+        return Task.cont
+
+game = WarriorGame()
+game.run()
